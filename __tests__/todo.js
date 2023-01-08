@@ -60,7 +60,7 @@ describe("Todo test suite ", () => {
     expect(parsedUpdateResponse.completed).toBe(true);
   });
 
-  test(" Delete todo using ID", async () => {
+  test(" Deleting a todo using ID", async () => {
     let res = await agent.get("/");
     let csrfToken = extractCsrfToken(res);
     await agent.post("/todos").send({
