@@ -33,7 +33,7 @@ describe("Todo test suite ", () => {
     expect(response.statusCode).toBe(302); //http status code
   });
 
-  test("Mark todo as completed ", async () => {
+  test("Mark todo as completed using id ", async () => {
     let res = await agent.get("/");
     let csrfToken = extractCsrfToken(res);
     await agent.post("/todos").send({
