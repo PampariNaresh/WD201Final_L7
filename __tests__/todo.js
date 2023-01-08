@@ -21,7 +21,7 @@ describe("Todo test suite ", () => {
     await db.sequelize.close();
     server.close();
   });
-  test("Create new todo", async () => {
+  test("Adding a  new todo", async () => {
     const res = await agent.get("/");
     const csrfToken = extractCsrfToken(res);
     const response = await agent.post("/todos").send({
@@ -33,7 +33,7 @@ describe("Todo test suite ", () => {
     expect(response.statusCode).toBe(302); //http status code
   });
 
-  test("Mark todo as completed (Updating Todo)", async () => {
+  test("Mark todo as completed ", async () => {
     let res = await agent.get("/");
     let csrfToken = extractCsrfToken(res);
     await agent.post("/todos").send({
