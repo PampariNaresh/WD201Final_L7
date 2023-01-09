@@ -80,10 +80,14 @@ passport.deserializeUser((id, done) => {
 });
 
 app.get("/", async (request, response) => {
-  response.render("index", {
-    title: "Todo Application",
-    csrfToken: request.csrfToken(),
-  });
+  if (request.user) {
+    return response.redirect("/todo");
+  } else {
+    return response.render("index", {
+      title: "Todo Application",
+      csrfToken: request.csrfToken(),
+    });
+  }
 });
 
 app.get(
@@ -96,6 +100,8 @@ app.get(
     const dueLater = await Todo.dueLater(loggedInUser);
     const dueToday = await Todo.dueToday(loggedInUser);
     const completedItems = await Todo.completedItems(loggedInUser);
+    const user = await User.findByPk(loggedInUser);
+    const userName = user.dataValues.firstName;
     if (request.accepts("html")) {
       response.render("todo", {
         title: "Todo Application",
@@ -104,19 +110,22 @@ app.get(
         dueToday,
         dueLater,
         completedItems,
+        userName,
         csrfToken: request.csrfToken(),
       });
     } else {
-      response.json({ overdue, dueToday, dueLater, completedItems });
+      response.json({ overdue, dueToday, dueLater, completedItems, userName });
     }
   }
 );
+
 app.get("/signup", (request, response) => {
   response.render("signup", {
     title: "Signup",
     csrfToken: request.csrfToken(),
   });
 });
+
 app.post("/users", async (request, response) => {
   if (request.body.email.length == 0) {
     request.flash("error", "Email can not be empty!");
@@ -148,7 +157,11 @@ app.post("/users", async (request, response) => {
       response.redirect("/todo");
     });
   } catch (error) {
-    console.log(error);
+    request.flash(
+      "error",
+      "This mail already having account, try another mail!"
+    );
+    return response.redirect("/signup");
   }
 });
 
@@ -176,17 +189,18 @@ app.get("/signout", (request, response, next) => {
   });
 });
 
-app.get("/todos", async (request, response) => {
-  // defining route to displaying message
-  console.log("Todo list");
-  try {
-    const todoslist = await Todo.findAll();
-    return response.json(todoslist);
-  } catch (error) {
-    console.log(error);
-    return response.status(422).json(error);
-  }
-});
+// app.get("/todos", async (request, response) => {
+//   // defining route to displaying message
+//   console.log("Todo list");
+//   try {
+//     const todoslist = await Todo.findAll();
+//     return response.json(todoslist);
+//   } catch (error) {
+//     console.log(error);
+//     return response.status(422).json(error);
+//   }
+// });
+
 app.get("/todos/:id", async function (request, response) {
   try {
     const todo = await Todo.findByPk(request.params.id);
@@ -225,7 +239,7 @@ app.post(
     }
   }
 );
-//PUT https://mytodoapp.com/todos/123/markAscomplete
+
 app.put(
   "/todos/:id",
   connectEnsureLogin.ensureLoggedIn(),
@@ -243,17 +257,18 @@ app.put(
     }
   }
 );
-app.put("/todos/:id/markAsCompleted", async (request, response) => {
-  console.log("we have to update a todo with ID:", request.params.id);
-  const todo = await Todo.findByPk(request.params.id);
-  try {
-    const updatedtodo = await todo.setCompletionStatus(request.body.completed);
-    return response.json(updatedtodo);
-  } catch (error) {
-    console.log(error);
-    return response.status(422).json(error);
-  }
-});
+
+// app.put("/todos/:id/markAsCompleted", async (request, response) => {
+//   console.log("we have to update a todo with ID:", request.params.id);
+//   const todo = await Todo.findByPk(request.params.id);
+//   try {
+//     const updatedtodo = await todo.setCompletionStatus(request.body.completed);
+//     return response.json(updatedtodo);
+//   } catch (error) {
+//     console.log(error);
+//     return response.status(422).json(error);
+//   }
+// });
 
 app.delete(
   "/todos/:id",
